@@ -29,11 +29,23 @@ class PASELI
     end
 
     def name
-      # return "REFLEC BEAT groovin'!!" if @name == "REFLEC BEAT colette" && @date > Date.new(2014, 6, 5)
+      return "REFLEC BEAT groovin'!!" if @name == "REFLEC BEAT colette" && @date > Date.new(2014, 6, 5)
       return @name
     end
 
     attr_reader :date, :amount
+  end
+
+  class PASELI::Entry::Payment < PASELI::Entry
+    def initialize(date:, name:, amount:)
+      super
+    end
+  end
+
+  class PASELI::Entry::Charge < PASELI::Entry
+    def initialize(date:, name:, amount:)
+      super
+    end
   end
 
   def initialize(konami_id:, password:)
@@ -77,15 +89,26 @@ class PASELI
 
       page = @agent.post('https://my.konami.net/paseli/payinfo.kc', { "strSub" => "", "strPage" => (i+1).to_s })
       page.search('.buy_table tr:nth-of-type(n+3)').each do |payment|
-        entries.push(PASELI::Entry.new(
-          date: Date.parse(payment.search("td:nth-child(1)").text),
-          name: payment.search("td:nth-child(2)").text,
-          amount: payment.search("td:nth-child(3)").text.gsub(/[^\d]/, '').to_i
-          # puts "Date: #{payment.search("td:nth-child(3)").text}"
-        ))
-      end
-    end
+        date = Date.parse(payment.search("td:nth-child(1)").text)
+        amount = payment.search("td:nth-child(3)").text.gsub(/[^\d]/, '').to_i
+        name = payment.search("td:nth-child(2)").text
 
-    return entries.reverse
+        if name =~ /([Cc]harge|チャージ)/
+          entries.push(PASELI::Entry::Payment.new(
+            date: date,
+            name: name,
+            amount: amount
+          ))
+        else
+          entries.push(PASELI::Entry::Charge.new(
+            date: date,
+            name: name,
+            amount: amount
+          ))
+        end
+      end
+
+      return entries.reverse
+    end
   end
 end

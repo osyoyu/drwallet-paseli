@@ -91,16 +91,40 @@ class DrWallet
     return receipts
   end
 
-  def add_transaction(date:, name:, amount:, shop:, account:, category:)
+  def add_expense(date:, name:, amount:, shop:, account:, category:)
     raise NotLoggedInError if !@logged_in
 
-    form = dashboard.form_with(:action => "/book_keepings/add_transactions.js")
+    form = dashboard..form_with(:id => 'expense_form')
     form.field_with(:name => 'date').value = Date.parse(date)
     form.field_with(:name => 'transaction[][amount]').value = amount
     form.field_with(:name => 'shop').value = shop
-    form.field_with(:name => 'account') {|list| list.option_with(:text => account).select} #.value = accounts.select {|account| account.name == account}.first.id
-    form.field_with(:name => 'transaction[][parent_category]') {|list| list.option_with(:text => category).select} #.value = categories.select {|category| category.name == category}.first.id
+    form.field_with(:name => 'account') {|list| list.option_with(:text => account).select}
+    form.field_with(:name => 'transaction[][parent_category]') {|list| list.option_with(:text => category).select}
     form.field_with(:name => 'transaction[][name]').value = name
+    form.submit
+  end
+
+  def add_income(date:, name:, amount:, shop:, account:, category:)
+    raise NotLoggedInError if !@logged_in
+
+    form = dashboard.form_with(:id => 'income_form')
+    form.field_with(:name => 'date').value = Date.parse(date)
+    form.field_with(:name => 'transaction[][amount]').value = amount
+    form.field_with(:name => 'shop').value = shop
+    form.field_with(:name => 'account') {|list| list.option_with(:text => account).select}
+    form.field_with(:name => 'transaction[][parent_category]') {|list| list.option_with(:text => category).select}
+    form.field_with(:name => 'transaction[][name]').value = name
+    form.submit
+  end
+
+  def add_transfer(date:, from_accont:, to_account:, amount:)
+    raise NotLoggedInError if !@logged_in
+
+    form = dashboard.form_with(:id => 'income_form')
+    form.field_with(:name => 'date').value = Date.parse(date)
+    form.field_with(:name => 'from_account_id') {|list| list.option_with(:text => account).select}
+    form.field_with(:name => 'to_account_id') {|list| list.option_with(:text => account).select}
+    form.field_with(:name => 'amount').value = amount
     form.submit
   end
 
